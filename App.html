@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SS Cinematic | Video Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#c9a84c;
+  --gold-light:#e8cc7a;
+  --gold-dim:#8a6e2f;
+  --black:#060606;
+  --deep:#0e0e0e;
+  --gray:#1a1a1a;
+  --gray2:#252525;
+  --text:#e8e0d0;
+  --text-dim:#888;
+  --white:#f5f0e8;
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* CURSOR */
+#cursor{
+  width:10px;height:10px;
+  background:var(--gold);
+  border-radius:50%;
+  position:fixed;top:0;left:0;
+  pointer-events:none;
+  z-index:9999;
+  transition:transform 0.1s;
+  mix-blend-mode:difference;
+}
+#cursor-ring{
+  width:36px;height:36px;
+  border:1px solid var(--gold);
+  border-radius:50%;
+  position:fixed;top:0;left:0;
+  pointer-events:none;
+  z-index:9998;
+  opacity:0.6;
+  transition:transform 0.15s ease, width 0.2s, height 0.2s, opacity 0.2s;
+}
+body:hover #cursor-ring{opacity:1;}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:1000;
+  padding:1.5rem 4rem;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background 0.4s;
+}
+nav.scrolled{background:rgba(6,6,6,0.95);border-bottom:1px solid rgba(201,168,76,0.15);}
+.nav-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem;
+  letter-spacing:0.15em;
+  color:var(--gold);
+}
+.nav-links{display:flex;gap:2.5rem;list-style:none;}
+.nav-links a{
+  font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--text-dim);text-decoration:none;
+  transition:color 0.3s;
+  position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;
+  height:1px;background:var(--gold);transform:scaleX(0);
+  transition:transform 0.3s;transform-origin:left;
+}
+.nav-links a:hover{color:var(--gold);}
+.nav-links a:hover::after{transform:scaleX(1);}
+
+/* HERO */
+#hero{
+  height:100vh;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:#060606;
+}
+/* Animated cinematic grain overlay */
+.grain{
+  position:absolute;inset:0;z-index:1;
+  opacity:0.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  animation:grain 0.3s steps(1) infinite;
+}
+@keyframes grain{
+  0%{transform:translate(0,0);}
+  25%{transform:translate(-3px,2px);}
+  50%{transform:translate(2px,-2px);}
+  75%{transform:translate(-1px,3px);}
+}
+/* Cinematic bars */
+.bars-top,.bars-bottom{
+  position:absolute;left:0;right:0;
+  height:80px;background:var(--black);z-index:5;
+}
+.bars-top{top:0;}
+.bars-bottom{bottom:0;}
+
+/* 3D floating camera SVG */
+.hero-3d-cam{
+  position:absolute;right:8%;top:50%;transform:translateY(-50%);
+  width:340px;opacity:0.12;z-index:2;
+  animation:float 6s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateY(-50%) rotate(-2deg);}
+  50%{transform:translateY(calc(-50% - 18px)) rotate(2deg);}
+}
+
+.hero-content{
+  position:relative;z-index:6;
+  text-align:center;
+  padding:0 2rem;
+}
+.hero-eyebrow{
+  font-size:0.7rem;letter-spacing:0.45em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1.5rem;
+  opacity:0;animation:fadeUp 1s 0.3s forwards;
+  display:flex;align-items:center;justify-content:center;gap:1rem;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{
+  content:'';display:block;width:40px;height:1px;background:var(--gold);
+}
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.2rem,8vw,7rem);
+  line-height:0.95;letter-spacing:0.04em;
+  color:var(--white);
+  opacity:0;animation:fadeUp 1s 0.5s forwards;
+  text-shadow:0 0 80px rgba(201,168,76,0.15);
+}
+.hero-title .gold{color:var(--gold);}
+.hero-title .pipe{color:var(--gold-dim);margin:0 0.2em;font-size:0.7em;}
+.hero-sub{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.1rem,2.5vw,1.6rem);
+  font-style:italic;
+  color:var(--text-dim);
+  margin-top:1.2rem;
+  opacity:0;animation:fadeUp 1s 0.7s forwards;
+  letter-spacing:0.06em;
+}
+.hero-cta{
+  margin-top:2.5rem;
+  opacity:0;animation:fadeUp 1s 0.9s forwards;
+}
+.btn-gold{
+  display:inline-block;
+  padding:1rem 2.8rem;
+  border:1px solid var(--gold);
+  color:var(--gold);
+  font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase;
+  text-decoration:none;
+  position:relative;overflow:hidden;
+  transition:color 0.4s;
+}
+.btn-gold::before{
+  content:'';position:absolute;inset:0;
+  background:var(--gold);
+  transform:translateX(-101%);transition:transform 0.4s cubic-bezier(0.77,0,0.18,1);
+}
+.btn-gold:hover{color:var(--black);}
+.btn-gold:hover::before{transform:translateX(0);}
+.btn-gold span{position:relative;z-index:1;}
+
+/* Scroll indicator */
+.scroll-ind{
+  position:absolute;bottom:100px;left:50%;transform:translateX(-50%);
+  z-index:6;display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:fadeIn 1s 1.4s forwards;
+}
+.scroll-ind span{font-size:0.6rem;letter-spacing:0.3em;color:var(--text-dim);}
+.scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 1.8s ease-in-out infinite;}
+@keyframes scrollPulse{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}100%{transform:scaleY(1);transform-origin:bottom;opacity:0;}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* SECTION COMMON */
+section{padding:7rem 0;}
+.container{max-width:1200px;margin:0 auto;padding:0 4rem;}
+.section-label{
+  font-size:0.65rem;letter-spacing:0.4em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem;
+  display:flex;align-items:center;gap:1rem;
+}
+.section-label::before{content:'';display:block;width:30px;height:1px;background:var(--gold);}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.8rem,5vw,4.5rem);
+  line-height:1;letter-spacing:0.03em;
+  color:var(--white);
+}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ABOUT */
+#about{background:var(--deep);}
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:5rem;
+  align-items:center;margin-top:3rem;
+}
+.about-visual{position:relative;}
+.about-frame{
+  width:100%;aspect-ratio:4/5;
+  border:1px solid rgba(201,168,76,0.2);
+  position:relative;overflow:hidden;
+}
+.about-frame-inner{
+  position:absolute;inset:12px;
+  background:var(--gray);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+/* Lens SVG decorative */
+.lens-art{position:absolute;top:-20px;right:-20px;width:120px;opacity:0.6;}
+.frame-counter{
+  position:absolute;bottom:-1.5rem;right:0;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:4rem;color:rgba(201,168,76,0.08);
+  letter-spacing:0.05em;
+}
+.about-text p{
+  font-size:1.05rem;line-height:1.9;
+  color:var(--text-dim);margin-bottom:1.5rem;
+}
+.stat-row{
+  display:flex;gap:2.5rem;margin-top:2.5rem;
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding-top:2.5rem;
+}
+.stat{text-align:center;}
+.stat-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.8rem;color:var(--gold);letter-spacing:0.05em;
+}
+.stat-label{font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+
+/* PORTFOLIO */
+#portfolio{background:var(--black);}
+.portfolio-tabs{
+  display:flex;gap:0;margin-top:2.5rem;margin-bottom:2.5rem;
+  border-bottom:1px solid var(--gray2);
+}
+.tab{
+  padding:0.8rem 1.8rem;
+  font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--text-dim);cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all 0.3s;
+  background:none;border-top:none;border-left:none;border-right:none;
+  color:var(--text-dim);
+}
+.tab:hover{color:var(--gold);}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+.portfolio-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:1.5px;
+}
+.port-item{
+  position:relative;aspect-ratio:16/10;
+  overflow:hidden;cursor:pointer;
+  background:var(--gray);
+}
+.port-item:first-child,.port-item:nth-child(4){
+  grid-column:span 2;
+  aspect-ratio:21/9;
+}
+.port-thumb{
+  width:100%;height:100%;
+  background:var(--gray2);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
+  position:relative;
+}
+.port-item:hover .port-thumb{transform:scale(1.06);}
+.port-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(6,6,6,0.95) 0%,rgba(6,6,6,0.1) 60%,transparent 100%);
+  opacity:0;transition:opacity 0.4s;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:1.5rem;
+}
+.port-item:hover .port-overlay{opacity:1;}
+.port-tag{font-size:0.6rem;letter-spacing:0.3em;color:var(--gold);margin-bottom:0.4rem;}
+.port-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--white);}
+.play-btn{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);
+  width:52px;height:52px;
+  border:1px solid rgba(201,168,76,0.6);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:all 0.4s;
+}
+.play-btn svg{width:18px;height:18px;fill:var(--gold);margin-left:3px;}
+.port-item:hover .play-btn{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+/* Placeholder visual for each card */
+.port-visual{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:4rem;color:rgba(201,168,76,0.07);
+  letter-spacing:0.1em;
+  position:absolute;inset:0;
+}
+
+/* SERVICES */
+#services{background:var(--deep);}
+.services-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1px;margin-top:3rem;
+  border:1px solid var(--gray2);
+}
+.service-card{
+  padding:2.5rem 2rem;
+  background:var(--deep);
+  border:1px solid transparent;
+  transition:all 0.4s;
+  position:relative;overflow:hidden;
+}
+.service-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,168,76,0.05),transparent);
+  opacity:0;transition:opacity 0.4s;
+}
+.service-card:hover{
+  background:var(--gray);
+  border-color:rgba(201,168,76,0.2);
+}
+.service-card:hover::before{opacity:1;}
+.service-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3.5rem;
+  color:rgba(201,168,76,0.08);
+  line-height:1;margin-bottom:1rem;
+  transition:color 0.4s;
+}
+.service-card:hover .service-num{color:rgba(201,168,76,0.18);}
+.service-icon{font-size:1.6rem;margin-bottom:1rem;}
+.service-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem;font-weight:600;
+  color:var(--white);margin-bottom:0.8rem;
+}
+.service-desc{font-size:0.85rem;color:var(--text-dim);line-height:1.7;}
+.service-link{
+  display:inline-block;margin-top:1.5rem;
+  font-size:0.65rem;letter-spacing:0.25em;color:var(--gold);
+  text-transform:uppercase;text-decoration:none;
+  border-bottom:1px solid rgba(201,168,76,0.3);
+  padding-bottom:2px;transition:border-color 0.3s;
+}
+.service-link:hover{border-color:var(--gold);}
+
+/* CONTACT */
+#contact{background:var(--black);position:relative;overflow:hidden;}
+#contact::before{
+  content:'CONTACT';
+  position:absolute;right:-2rem;top:50%;transform:translateY(-50%);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18vw;color:rgba(201,168,76,0.02);
+  pointer-events:none;white-space:nowrap;
+}
+.contact-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:5rem;align-items:start;margin-top:3rem;
+}
+.contact-info h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;font-style:italic;
+  color:var(--white);margin-bottom:1.5rem;
+}
+.contact-info p{font-size:0.95rem;color:var(--text-dim);line-height:1.8;margin-bottom:2rem;}
+.contact-detail{
+  display:flex;align-items:center;gap:1rem;
+  margin-bottom:1rem;
+}
+.contact-detail-icon{
+  width:40px;height:40px;
+  border:1px solid rgba(201,168,76,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;
+}
+.contact-detail-text a{color:var(--gold);text-decoration:none;}
+.contact-detail-text span{display:block;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;}
+.btn-whatsapp{
+  display:inline-flex;align-items:center;gap:0.8rem;
+  padding:0.9rem 2rem;
+  background:rgba(37,211,102,0.1);
+  border:1px solid rgba(37,211,102,0.3);
+  color:#25d166;
+  font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;
+  text-decoration:none;margin-top:1.5rem;
+  transition:all 0.3s;
+}
+.btn-whatsapp:hover{background:rgba(37,211,102,0.2);}
+.btn-whatsapp svg{width:18px;height:18px;fill:#25d166;}
+
+.contact-form{display:flex;flex-direction:column;gap:1rem;}
+.form-group input,
+.form-group textarea{
+  width:100%;padding:1rem 1.2rem;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:0.9rem;outline:none;
+  transition:border-color 0.3s;resize:none;
+}
+.form-group textarea{height:130px;}
+.form-group input::placeholder,
+.form-group textarea::placeholder{color:rgba(255,255,255,0.2);}
+.form-group input:focus,
+.form-group textarea:focus{border-color:rgba(201,168,76,0.4);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+/* FOOTER */
+footer{
+  background:var(--black);
+  border-top:1px solid rgba(201,168,76,0.1);
+  padding:3rem 0;
+}
+.footer-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:2rem;
+}
+.footer-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.3rem;letter-spacing:0.12em;color:var(--gold);
+}
+.footer-tagline{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:0.95rem;
+  color:var(--text-dim);text-align:center;
+}
+.footer-social{display:flex;gap:1rem;}
+.social-btn{
+  width:38px;height:38px;
+  border:1px solid rgba(201,168,76,0.2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);transition:all 0.3s;
+  text-decoration:none;font-size:1rem;
+}
+.social-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* LIGHTBOX */
+#lightbox{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,0.97);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.4s;
+}
+#lightbox.open{opacity:1;pointer-events:all;}
+.lb-inner{
+  position:relative;width:80vw;max-width:1000px;
+  aspect-ratio:16/9;background:#111;
+}
+.lb-close{
+  position:absolute;top:-3rem;right:0;
+  font-size:0.7rem;letter-spacing:0.3em;color:var(--text-dim);
+  cursor:pointer;background:none;border:none;
+  transition:color 0.3s;
+}
+.lb-close:hover{color:var(--gold);}
+.lb-video{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;color:var(--text-dim);font-style:italic;
+}
+
+/* GOLD LINE DIVIDER */
+.divider{
+  width:60px;height:1px;background:var(--gold);
+  margin:1.5rem 0;
+}
+
+/* Parallax bg text */
+.bg-text{
+  position:absolute;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22vw;
+  color:rgba(201,168,76,0.025);
+  white-space:nowrap;pointer-events:none;
+  letter-spacing:0.05em;
+  user-select:none;
+  top:50%;transform:translateY(-50%);
+  z-index:0;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  nav{padding:1.2rem 1.5rem;}
+  .nav-links{display:none;}
+  .container{padding:0 1.5rem;}
+  section{padding:5rem 0;}
+  .about-grid{grid-template-columns:1fr;gap:3rem;}
+  .contact-grid{grid-template-columns:1fr;gap:3rem;}
+  .hero-3d-cam{display:none;}
+  .port-item:first-child,.port-item:nth-child(4){grid-column:span 1;aspect-ratio:16/10;}
+  .form-row{grid-template-columns:1fr;}
+  .footer-inner{flex-direction:column;text-align:center;}
+  .stat-row{gap:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <!-- SS CINEMATIC LOGO -->
+  <a href="#hero" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="21" cy="21" r="20" stroke="#c9a84c" stroke-width="1"/>
+      <!-- Lens inner ring -->
+      <circle cx="21" cy="21" r="14" stroke="#c9a84c" stroke-width="0.6" stroke-dasharray="3 2"/>
+      <!-- Aperture blades -->
+      <path d="M21 7 L23 15 L21 13 L19 15 Z" fill="#c9a84c" opacity="0.7"/>
+      <path d="M35 21 L27 23 L29 21 L27 19 Z" fill="#c9a84c" opacity="0.7"/>
+      <path d="M21 35 L19 27 L21 29 L23 27 Z" fill="#c9a84c" opacity="0.7"/>
+      <path d="M7 21 L15 19 L13 21 L15 23 Z" fill="#c9a84c" opacity="0.7"/>
+      <!-- Center SS text -->
+      <text x="21" y="25" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#c9a84c" letter-spacing="1">SS</text>
+    </svg>
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.18em;color:#c9a84c;line-height:1;">SS CINEMATIC</div>
+      <div style="font-size:0.45rem;letter-spacing:0.35em;color:#8a6e2f;text-transform:uppercase;line-height:1;margin-top:1px;">Video Creator · Pune</div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#reels">Reels</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="btn-gold" style="font-size:0.65rem;padding:0.7rem 1.6rem;"><span>Book a Shoot</span></a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">
+    <!-- Cinematic animated gradient -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 30% 50%,rgba(201,168,76,0.07) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 70% 30%,rgba(201,168,76,0.04) 0%,transparent 60%);animation:bgPulse 8s ease-in-out infinite alternate;"></div>
+    <!-- Horizontal scan lines -->
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);opacity:0.3;pointer-events:none;"></div>
+  </div>
+  <div class="grain"></div>
+  <div class="bars-top"></div>
+  <div class="bars-bottom"></div>
+
+  <!-- 3D Floating Camera -->
+  <svg class="hero-3d-cam" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="80" width="280" height="170" rx="12" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+    <rect x="80" y="100" width="240" height="130" rx="8" fill="rgba(201,168,76,0.04)" stroke="#c9a84c" stroke-width="0.5"/>
+    <circle cx="200" cy="170" r="55" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+    <circle cx="200" cy="170" r="40" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-dasharray="4 3"/>
+    <circle cx="200" cy="170" r="25" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="200" cy="170" r="10" fill="rgba(201,168,76,0.3)"/>
+    <rect x="290" y="110" width="50" height="35" rx="4" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <rect x="270" y="70" width="60" height="20" rx="3" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+    <rect x="80" y="100" width="80" height="30" rx="4" fill="none" stroke="#c9a84c" stroke-width="0.6"/>
+    <line x1="60" y1="80" x2="20" y2="50" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="340" y1="80" x2="380" y2="50" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="60" y1="250" x2="20" y2="280" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="340" y1="250" x2="380" y2="280" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <rect x="20" y="30" width="360" height="260" rx="14" fill="none" stroke="#c9a84c" stroke-width="0.3" stroke-dasharray="6 4"/>
+  </svg>
+
+  <!-- Film reel SVG left -->
+  <svg style="position:absolute;left:6%;bottom:18%;width:160px;opacity:0.08;animation:float 8s 2s ease-in-out infinite;" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="80" cy="80" r="75" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+    <circle cx="80" cy="80" r="55" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-dasharray="8 4"/>
+    <circle cx="80" cy="80" r="18" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+    <circle cx="80" cy="40" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="80" cy="120" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="40" cy="80" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="120" cy="80" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="52" cy="52" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="108" cy="52" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="52" cy="108" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="108" cy="108" r="10" fill="none" stroke="#c9a84c" stroke-width="1"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Pune, Maharashtra</div>
+    <h1 class="hero-title">
+      SS<br>
+      <span class="gold">CINEMATIC</span><br>
+      <span style="font-size:0.6em;letter-spacing:0.15em;color:var(--text-dim);">VIDEO CREATOR</span>
+    </h1>
+    </h1>
+    <p class="hero-sub">Capturing Stories Through Cinematic Vision</p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn-gold"><span>Book a Shoot</span></a>
+      <a href="#portfolio" class="btn-gold" style="margin-left:1rem;background:none;border-color:rgba(255,255,255,0.15);color:var(--text-dim);"><span>View Work</span></a>
+    </div>
+  </div>
+
+  <div class="scroll-ind">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="about-frame">
+          <div class="about-frame-inner">
+            <!-- Decorative cinematography visual -->
+            <svg viewBox="0 0 300 360" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <rect width="300" height="360" fill="#111"/>
+              <!-- Golden ratio spiral suggestion -->
+              <rect x="20" y="20" width="260" height="320" fill="none" stroke="rgba(201,168,76,0.1)" stroke-width="0.5"/>
+              <rect x="40" y="40" width="220" height="280" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+              <!-- Camera lens circles -->
+              <circle cx="150" cy="180" r="110" fill="none" stroke="rgba(201,168,76,0.12)" stroke-width="1"/>
+              <circle cx="150" cy="180" r="85" fill="none" stroke="rgba(201,168,76,0.1)" stroke-width="1"/>
+              <circle cx="150" cy="180" r="60" fill="none" stroke="rgba(201,168,76,0.15)" stroke-width="1.5"/>
+              <circle cx="150" cy="180" r="35" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="1"/>
+              <circle cx="150" cy="180" r="12" fill="rgba(201,168,76,0.3)"/>
+              <!-- Cross hairs -->
+              <line x1="150" y1="40" x2="150" y2="320" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+              <line x1="20" y1="180" x2="280" y2="180" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+              <!-- Frame counter -->
+              <text x="260" y="350" font-family="monospace" font-size="10" fill="rgba(201,168,76,0.4)" text-anchor="end">FRAME 001</text>
+              <text x="40" y="350" font-family="monospace" font-size="10" fill="rgba(201,168,76,0.4)">35mm</text>
+              <!-- Top film strip -->
+              <rect x="20" y="20" width="10" height="6" fill="rgba(201,168,76,0.2)"/>
+              <rect x="36" y="20" width="10" height="6" fill="rgba(201,168,76,0.2)"/>
+              <rect x="52" y="20" width="10" height="6" fill="rgba(201,168,76,0.2)"/>
+              <rect x="68" y="20" width="10" height="6" fill="rgba(201,168,76,0.2)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="frame-counter">01</div>
+        <!-- Decorative corner -->
+        <div style="position:absolute;bottom:-10px;left:-10px;width:60px;height:60px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);opacity:0.4;"></div>
+        <div style="position:absolute;top:-10px;right:-10px;width:60px;height:60px;border-right:2px solid var(--gold);border-top:2px solid var(--gold);opacity:0.4;"></div>
+      </div>
+
+      <div class="about-text reveal" style="transition-delay:0.2s;">
+        <div class="section-label">About</div>
+        <h2 class="section-title">Crafting Visual<br><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);">Stories</em></h2>
+        <div class="divider"></div>
+        <p>Based in Pune, we are a professional cinematography and video production studio dedicated to turning your most precious moments into timeless cinematic experiences.</p>
+        <p>From the grandeur of wedding ceremonies to the precision of commercial ads, our work is guided by a singular philosophy — every frame must tell a story, every cut must carry emotion.</p>
+        <p>With high-end cameras, drone cinematography, and a filmmaker's eye, we deliver production quality that rivals Bollywood productions at a scale built for you.</p>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-num">200+</div><div class="stat-label">Films Made</div></div>
+          <div class="stat"><div class="stat-num">5+</div><div class="stat-label">Years Active</div></div>
+          <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Weddings</div></div>
+          <div class="stat"><div class="stat-num">4K</div><div class="stat-label">Resolution</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="container">
+    <div class="section-label reveal">Portfolio</div>
+    <h2 class="section-title reveal">Selected Works</h2>
+    <div class="portfolio-tabs reveal">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="wedding">Weddings</button>
+      <button class="tab" data-filter="reels">Reels</button>
+      <button class="tab" data-filter="commercial">Commercial</button>
+      <button class="tab" data-filter="events">Events</button>
+    </div>
+  </div>
+
+  <div class="portfolio-grid" id="portGrid">
+    <div class="port-item" data-cat="wedding" onclick="openLightbox('Wedding Cinematic Film')">
+      <div class="port-thumb">
+        <div class="port-visual">WED</div>
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="280" fill="#161010"/>
+          <circle cx="300" cy="140" r="90" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="1"/>
+          <circle cx="300" cy="140" r="60" fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="1"/>
+          <line x1="0" y1="140" x2="600" y2="140" stroke="rgba(201,168,76,0.04)" stroke-width="0.5"/>
+          <line x1="300" y1="0" x2="300" y2="280" stroke="rgba(201,168,76,0.04)" stroke-width="0.5"/>
+          <text x="300" y="155" text-anchor="middle" font-family="'Georgia',serif" font-size="28" fill="rgba(201,168,76,0.12)" font-style="italic">Wedding</text>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Wedding Film</div>
+        <div class="port-name">A Love Story — Pune</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+
+    <div class="port-item" data-cat="commercial" onclick="openLightbox('Commercial Ad Film')">
+      <div class="port-thumb">
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="180" fill="#0f1215"/>
+          <rect x="40" y="40" width="220" height="100" fill="none" stroke="rgba(201,168,76,0.1)" stroke-width="0.7"/>
+          <rect x="55" y="55" width="190" height="70" fill="rgba(201,168,76,0.02)"/>
+          <text x="150" y="98" text-anchor="middle" font-family="'Georgia',serif" font-size="18" fill="rgba(201,168,76,0.15)">Commercial</text>
+          <line x1="40" y1="140" x2="260" y2="140" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Commercial</div>
+        <div class="port-name">Brand Film — Product</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+
+    <div class="port-item" data-cat="reels" onclick="openLightbox('Instagram Reel')">
+      <div class="port-thumb">
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="180" fill="#0d0f10"/>
+          <circle cx="150" cy="90" r="55" fill="none" stroke="rgba(201,168,76,0.1)" stroke-width="1"/>
+          <circle cx="150" cy="90" r="35" fill="none" stroke="rgba(201,168,76,0.07)" stroke-width="0.7"/>
+          <text x="150" y="97" text-anchor="middle" font-family="'Georgia',serif" font-size="14" fill="rgba(201,168,76,0.15)">Reel</text>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Instagram Reel</div>
+        <div class="port-name">Cinematic Reel — 2024</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+
+    <div class="port-item" data-cat="wedding" onclick="openLightbox('Pre-Wedding Film')">
+      <div class="port-thumb">
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="280" fill="#100d10"/>
+          <ellipse cx="300" cy="140" rx="180" ry="100" fill="none" stroke="rgba(201,168,76,0.07)" stroke-width="1"/>
+          <ellipse cx="300" cy="140" rx="120" ry="65" fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="0.7"/>
+          <text x="300" y="148" text-anchor="middle" font-family="'Georgia',serif" font-size="24" fill="rgba(201,168,76,0.12)" font-style="italic">Pre-Wedding</text>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Pre-Wedding</div>
+        <div class="port-name">Golden Hour — Lonavala</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+
+    <div class="port-item" data-cat="events" onclick="openLightbox('Event Coverage')">
+      <div class="port-thumb">
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="180" fill="#0c0e0d"/>
+          <rect x="20" y="20" width="260" height="140" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <text x="150" y="97" text-anchor="middle" font-family="'Georgia',serif" font-size="16" fill="rgba(201,168,76,0.13)">Events</text>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Events</div>
+        <div class="port-name">Corporate Gala — Pune</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+
+    <div class="port-item" data-cat="reels" onclick="openLightbox('Cinematic Reel')">
+      <div class="port-thumb">
+        <svg style="width:100%;height:100%;position:absolute;inset:0;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="180" fill="#0e100e"/>
+          <line x1="0" y1="90" x2="300" y2="90" stroke="rgba(201,168,76,0.05)" stroke-width="0.5"/>
+          <line x1="150" y1="0" x2="150" y2="180" stroke="rgba(201,168,76,0.05)" stroke-width="0.5"/>
+          <circle cx="150" cy="90" r="40" fill="none" stroke="rgba(201,168,76,0.12)" stroke-width="1"/>
+          <text x="150" y="97" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="rgba(201,168,76,0.15)">Reel</text>
+        </svg>
+      </div>
+      <div class="port-overlay">
+        <div class="port-tag">Reels</div>
+        <div class="port-name">Fashion Shoot Reel</div>
+      </div>
+      <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="container">
+    <div class="section-label reveal">Services</div>
+    <h2 class="section-title reveal">What We Create</h2>
+    <div class="services-grid">
+
+      <div class="service-card reveal">
+        <div class="service-num">01</div>
+        <div class="service-icon">💍</div>
+        <div class="service-name">Wedding Shoots</div>
+        <div class="service-desc">Full-day wedding cinematography capturing every candid emotion, ritual, and celebration with cinematic precision.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+      <div class="service-card reveal" style="transition-delay:0.1s;">
+        <div class="service-num">02</div>
+        <div class="service-icon">🎬</div>
+        <div class="service-name">Pre-Wedding Films</div>
+        <div class="service-desc">Romantic, story-driven pre-wedding cinematic films at handpicked locations — from Pune to Lonavala and beyond.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+      <div class="service-card reveal" style="transition-delay:0.2s;">
+        <div class="service-num">03</div>
+        <div class="service-icon">📱</div>
+        <div class="service-name">Instagram Reels</div>
+        <div class="service-desc">Scroll-stopping, trend-forward reels crafted for maximum engagement — edited with music, transitions, and cinematic colour grading.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+      <div class="service-card reveal" style="transition-delay:0.3s;">
+        <div class="service-num">04</div>
+        <div class="service-icon">📺</div>
+        <div class="service-name">Commercial Ads</div>
+        <div class="service-desc">High-production brand films and product ads designed to convert. Script, shoot, edit — full production pipeline.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+      <div class="service-card reveal" style="transition-delay:0.4s;">
+        <div class="service-num">05</div>
+        <div class="service-icon">🎊</div>
+        <div class="service-name">Event Coverage</div>
+        <div class="service-desc">Corporate events, birthdays, concerts, and cultural programs documented with multi-camera setups and live colour grading.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+      <div class="service-card reveal" style="transition-delay:0.5s;">
+        <div class="service-num">06</div>
+        <div class="service-icon">🚁</div>
+        <div class="service-name">Drone Cinematography</div>
+        <div class="service-desc">Breathtaking aerial perspectives for weddings, real estate, events, and commercial projects across Maharashtra.</div>
+        <a href="#contact" class="service-link">Book Now →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-label reveal">Contact</div>
+    <h2 class="section-title reveal">DM for All Shoots</h2>
+    <div class="divider reveal"></div>
+    <div class="contact-grid">
+
+      <div class="reveal">
+        <h3>Let's Create Something Extraordinary</h3>
+        <p>Every great film starts with a conversation. Tell us your vision, your date, your story — and we'll craft something you'll treasure forever.</p>
+
+        <div class="contact-detail">
+          <div class="contact-detail-icon">📞</div>
+          <div class="contact-detail-text">
+            <span>Call / WhatsApp</span>
+            <a href="tel:7350316758">7350316758</a>
+          </div>
+        </div>
+
+        <div class="contact-detail">
+          <div class="contact-detail-icon">📍</div>
+          <div class="contact-detail-text">
+            <span>Location</span>
+            <a href="#" style="color:var(--text-dim);">Pune, Maharashtra, India</a>
+          </div>
+        </div>
+
+        <div class="contact-detail">
+          <div class="contact-detail-icon">📸</div>
+          <div class="contact-detail-text">
+            <span>Instagram</span>
+            <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank">@ss_cinematic_64</a>
+          </div>
+        </div>
+
+        <a href="https://wa.me/917350316758?text=Hi%2C%20I%27d%20like%20to%20book%20a%20shoot!" target="_blank" class="btn-whatsapp">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.532 5.862L0 24l6.277-1.506A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.368l-.36-.213-3.727.895.929-3.636-.235-.374A9.818 9.818 0 012.182 12C2.182 6.577 6.577 2.182 12 2.182S21.818 6.577 21.818 12 17.423 21.818 12 21.818z"/></svg>
+          WhatsApp Us Now
+        </a>
+      </div>
+
+      <div class="reveal" style="transition-delay:0.2s;">
+        <div class="contact-form">
+          <div class="form-row">
+            <div class="form-group"><input id="f-name" type="text" placeholder="Your Name"></div>
+            <div class="form-group"><input id="f-phone" type="tel" placeholder="Phone Number"></div>
+          </div>
+          <div class="form-group"><input id="f-email" type="email" placeholder="Email Address"></div>
+          <div class="form-group">
+            <select id="f-shoot" style="width:100%;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;appearance:none;">
+              <option value="" disabled selected>Type of Shoot</option>
+              <option>Wedding Shoot</option>
+              <option>Pre-Wedding Film</option>
+              <option>Instagram Reels</option>
+              <option>Commercial Ad</option>
+              <option>Event Coverage</option>
+              <option>Drone Shoot</option>
+            </select>
+          </div>
+          <div class="form-group"><input id="f-date" type="date" style="width:100%;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;"></div>
+          <div class="form-group"><textarea id="f-msg" placeholder="Tell us about your vision, event details, or any specific requirements..."></textarea></div>
+          <button class="btn-gold" id="submitBtn" style="align-self:flex-start;cursor:pointer;font-family:'DM Sans',sans-serif;" onclick="submitForm(this)"><span>Send Inquiry →</span></button>
+        </div>
+        <!-- Success banner (hidden by default) -->
+        <div id="successBanner" style="display:none;margin-top:1.5rem;padding:1.2rem 1.5rem;border:1px solid rgba(37,211,102,0.3);background:rgba(37,211,102,0.06);">
+          <div style="font-size:0.65rem;letter-spacing:0.3em;color:#25d166;margin-bottom:0.4rem;">INQUIRY SENT</div>
+          <div style="font-size:0.95rem;color:var(--text);">WhatsApp is opening with your details. We'll reply within a few hours!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- INSTAGRAM REELS -->
+<section id="reels" style="background:var(--deep);padding:5rem 0;">
+  <div class="container">
+    <div class="section-label reveal">Instagram</div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem;">
+      <h2 class="section-title reveal">Our Reels</h2>
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="btn-gold reveal" style="padding:0.7rem 1.6rem;font-size:0.65rem;"><span>Follow @ss_cinematic_64 ↗</span></a>
+    </div>
+
+    <!-- Reel cards grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:3px;" class="reveal">
+
+      <!-- Reel Card template x6 — each links to the profile -->
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#0f0c0c"/>
+            <circle cx="100" cy="160" r="60" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="1"/>
+            <circle cx="100" cy="160" r="35" fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="1"/>
+            <text x="100" y="167" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Wedding</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#0c0f0c"/>
+            <rect x="30" y="80" width="140" height="190" fill="none" stroke="rgba(201,168,76,0.07)" stroke-width="0.7"/>
+            <text x="100" y="182" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Pre-Wedding</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#0c0c10"/>
+            <ellipse cx="100" cy="160" rx="65" ry="80" fill="none" stroke="rgba(201,168,76,0.07)" stroke-width="0.7"/>
+            <text x="100" y="165" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Commercial</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#100d0c"/>
+            <line x1="100" y1="60" x2="100" y2="290" stroke="rgba(201,168,76,0.05)" stroke-width="0.5"/>
+            <line x1="20" y1="175" x2="180" y2="175" stroke="rgba(201,168,76,0.05)" stroke-width="0.5"/>
+            <circle cx="100" cy="175" r="50" fill="none" stroke="rgba(201,168,76,0.09)" stroke-width="1"/>
+            <text x="100" y="180" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Event</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#0e100e"/>
+            <rect x="20" y="60" width="160" height="230" rx="4" fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="0.5" stroke-dasharray="4 3"/>
+            <text x="100" y="178" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Fashion</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="reel-card">
+        <div class="reel-inner">
+          <svg viewBox="0 0 200 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="350" fill="#0d0d10"/>
+            <circle cx="100" cy="175" r="70" fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="0.5"/>
+            <circle cx="100" cy="175" r="45" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="0.8"/>
+            <text x="100" y="180" text-anchor="middle" font-family="serif" font-size="13" fill="rgba(201,168,76,0.12)" font-style="italic">Cinematic</text>
+          </svg>
+          <div class="reel-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" style="opacity:0.9"><path d="M8 5v14l11-7z"/></svg>
+            <div style="font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.6);margin-top:6px;">VIEW REEL</div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Bottom CTA -->
+    <div style="text-align:center;margin-top:2.5rem;" class="reveal">
+      <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:var(--text-dim);margin-bottom:1.2rem;">See all our latest work on Instagram</p>
+      <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" style="display:inline-flex;align-items:center;gap:0.8rem;padding:0.9rem 2rem;border:1px solid rgba(201,168,76,0.3);color:var(--gold);text-decoration:none;font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;transition:all 0.3s;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='none'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#c9a84c"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        @ss_cinematic_64 · View All Reels
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+.reel-card{display:block;text-decoration:none;position:relative;aspect-ratio:9/16;overflow:hidden;background:var(--gray);}
+.reel-inner{position:relative;width:100%;height:100%;}
+.reel-inner svg{display:block;width:100%;height:100%;object-fit:cover;}
+.reel-overlay{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.55);
+  opacity:0;transition:opacity 0.35s;
+}
+.reel-card:hover .reel-overlay{opacity:1;}
+.reel-card:hover .reel-inner svg{transform:scale(1.04);transition:transform 0.5s ease;}
+</style>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="38" height="38" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="21" cy="21" r="20" stroke="#c9a84c" stroke-width="1"/>
+            <circle cx="21" cy="21" r="14" stroke="#c9a84c" stroke-width="0.6" stroke-dasharray="3 2"/>
+            <path d="M21 7 L23 15 L21 13 L19 15 Z" fill="#c9a84c" opacity="0.7"/>
+            <path d="M35 21 L27 23 L29 21 L27 19 Z" fill="#c9a84c" opacity="0.7"/>
+            <path d="M21 35 L19 27 L21 29 L23 27 Z" fill="#c9a84c" opacity="0.7"/>
+            <path d="M7 21 L15 19 L13 21 L15 23 Z" fill="#c9a84c" opacity="0.7"/>
+            <text x="21" y="25" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#c9a84c" letter-spacing="1">SS</text>
+          </svg>
+          <div>
+            <div class="footer-logo">SS CINEMATIC | VIDEO CREATOR</div>
+            <div style="font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-top:0.2rem;">7350316758 · Pune, Maharashtra</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-tagline">
+        "Turning Moments into<br>Cinematic Memories"
+      </div>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/ss_cinematic_64?igsh=MWUyNjhvaGk1dGE5MQ==" target="_blank" class="social-btn" title="Follow on Instagram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="https://wa.me/917350316758?text=Hi%2C%20I%20saw%20your%20portfolio%20and%20would%20like%20to%20book%20a%20shoot!" target="_blank" class="social-btn" title="Chat on WhatsApp">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.532 5.862L0 24l6.277-1.506A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.368l-.36-.213-3.727.895.929-3.636-.235-.374A9.818 9.818 0 012.182 12C2.182 6.577 6.577 2.182 12 2.182S21.818 6.577 21.818 12 17.423 21.818 12 21.818z"/></svg>
+        </a>
+        <a href="tel:+917350316758" class="social-btn" title="Call Now">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.04);font-size:0.7rem;letter-spacing:0.1em;color:rgba(255,255,255,0.15);">
+      © 2025 SS Cinematic | Video Creator · All Rights Reserved
+    </div>
+  </div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div class="lb-inner">
+    <button class="lb-close" onclick="closeLightbox()">✕ CLOSE</button>
+    <div class="lb-video" id="lbContent">
+      <div style="text-align:center;">
+        <div style="font-size:0.65rem;letter-spacing:0.3em;color:var(--gold);margin-bottom:1rem;">NOW PLAYING</div>
+        <div id="lbTitle" style="font-size:2rem;color:var(--white);margin-bottom:0.5rem;">Wedding Film</div>
+        <div style="font-size:0.85rem;color:var(--text-dim);">Add your video embed URL here</div>
+        <div style="margin-top:2rem;opacity:0.3;">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="29" stroke="#c9a84c" stroke-width="1"/>
+            <path d="M24 20l20 10-20 10V20z" fill="#c9a84c"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes bgPulse{
+  from{opacity:0.6;}to{opacity:1;}
+}
+</style>
+
+<script>
+// Cursor
+const cursor=document.getElementById('cursor');
+const ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cursor.style.transform=`translate(${mx-5}px,${my-5}px)`;
+});
+function animRing(){
+  rx+=(mx-rx-18)*0.12;
+  ry+=(my-ry-18)*0.12;
+  ring.style.transform=`translate(${rx}px,${ry}px)`;
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a,button,.port-item,.tab').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cursor.style.transform+=' scale(1.5)';
+    ring.style.width='50px';ring.style.height='50px';
+    ring.style.marginLeft='-7px';ring.style.marginTop='-7px';
+  });
+  el.addEventListener('mouseleave',()=>{
+    ring.style.width='36px';ring.style.height='36px';
+    ring.style.marginLeft='0';ring.style.marginTop='0';
+  });
+});
+
+// Nav scroll
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>60);
+  // parallax bg text elements
+  document.querySelectorAll('.bg-text').forEach(el=>{
+    el.style.transform=`translateY(calc(-50% + ${window.scrollY*0.2}px))`;
+  });
+});
+
+// Reveal on scroll
+const revealObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');}
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+// Portfolio tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter=tab.dataset.filter;
+    document.querySelectorAll('.port-item').forEach(item=>{
+      const show=filter==='all'||item.dataset.cat===filter;
+      item.style.display=show?'':'none';
+    });
+  });
+});
+
+// Lightbox
+function openLightbox(title){
+  document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lbTitle').textContent=title;
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('lightbox').addEventListener('click',function(e){
+  if(e.target===this)closeLightbox();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
+
+// Form — WhatsApp redirect
+function submitForm(btn){
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const shoot=document.getElementById('f-shoot').value;
+  const date=document.getElementById('f-date').value;
+  const msg=document.getElementById('f-msg').value.trim();
+
+  if(!name){alert('Please enter your name.');return;}
+  if(!phone){alert('Please enter your phone number.');return;}
+  if(!shoot){alert('Please select a type of shoot.');return;}
+
+  const lines=[
+    '🎬 *New Shoot Inquiry*',
+    '━━━━━━━━━━━━━━━━━━',
+    `👤 *Name:* ${name}`,
+    `📞 *Phone:* ${phone}`,
+    email ? `📧 *Email:* ${email}` : null,
+    `🎥 *Shoot Type:* ${shoot}`,
+    date ? `📅 *Date:* ${new Date(date).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}` : null,
+    msg ? `💬 *Message:* ${msg}` : null,
+    '━━━━━━━━━━━━━━━━━━',
+    'Sent from SS Cinematic'
+  ].filter(Boolean).join('\n');
+
+  const waURL='https://wa.me/917350316758?text='+encodeURIComponent(lines);
+
+  // Show success banner
+  document.getElementById('successBanner').style.display='block';
+  btn.querySelector('span').textContent='Sent ✓';
+  btn.style.borderColor='rgba(37,211,102,0.5)';
+  btn.style.color='#25d166';
+  btn.disabled=true;
+
+  // Open WhatsApp after a brief moment so user sees the confirmation
+  setTimeout(()=>{ window.open(waURL,'_blank'); }, 600);
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const target=document.querySelector(a.getAttribute('href'));
+    if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth'});}
+  });
+});
+</script>
+</body>
+</html>
